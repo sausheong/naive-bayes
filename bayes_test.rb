@@ -1,5 +1,4 @@
 #encoding: utf-8
-
 require './naive_bayes'
 require 'pp'
 
