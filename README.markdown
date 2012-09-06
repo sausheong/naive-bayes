@@ -76,50 +76,46 @@ The first method we'll roll into the constructor of the class, so that when we c
 Let's look at the initializer first. We'll need the following instance variables:
 1. @words is a hash containing a list of words trained for the classifier. It looks something like this:
 
-<code>
-{
-"spam"    => { "money" => 10, "quick" => 12, "rich"  => 15 },
-"not_spam" => { "report" => 9, "database" => 13, "salaries"  => 12 }
-}
-</code>
+    {
+    "spam"    => { "money" => 10, "quick" => 12, "rich"  => 15 },
+    "not_spam" => { "report" => 9, "database" => 13, "salaries"  => 12 }
+    }
 
-"Spam" and "not_spam" are the categories, while "money", "quick" etc are the words in the "spam" category with the numbers indicating the number of times it has been trained as that particular category.  2. @total_words contains the number of words trained  3. @categories_documents is a hash containing the number of documents trained for each category:
+"Spam" and "not_spam" are the categories, while "money", "quick" etc are the words in the "spam" category with the numbers indicating the number of times it has been trained as that particular category.  
 
-<code>
-{ "spam" => 4, "not_spam" => 5}
-</code>
+2. @total_words contains the number of words trained  
 
-4. @total_documents is the total number of documents trained  5. @categories_words is a hash containing the number of words trained for each category:
+3. @categories_documents is a hash containing the number of documents trained for each category:
 
-[sourcecode language="ruby"]
-{ "spam" => 37, "not_spam" => 34}
-[/sourcecode]
+    { "spam" => 4, "not_spam" => 5}
+
+4. @total_documents is the total number of documents trained  
+
+5. @categories_words is a hash containing the number of words trained for each category:
+
+    { "spam" => 37, "not_spam" => 34}
 
 6. @threshold is something I will talk about again at the last section of the code descriptions (it doesn't make much sense now).  Next is the <em>train</em> method, which takes in a category and a document. We break down the document into a number of words, and slot it accordingly into the instance variables we created earlier on. Here we are using a private helper method called word_count to do the grunt work.
 
-<code>
-def word_count(document)
-  words = document.gsub(/[^\w\s]/,"").split
-  d = Hash.new
-  words.each do |word|
-    word.downcase!
-    key = word.stem
-    unless COMMON_WORDS.include?(word)
-    d[key] ||= 0
-    d[key] += 1
-  end
-end
-return d
-end
+    def word_count(document)
+      words = document.gsub(/[^\w\s]/,"").split
+      d = Hash.new
+      words.each do |word|
+        word.downcase!
+        key = word.stem
+        unless COMMON_WORDS.include?(word)
+        d[key] ||= 0
+        d[key] += 1
+      end
+    end
+    return d
+    end
 
-COMMON_WORDS = ['a','able','about','above','abroad' ...] # this is truncated
-</code>
+    COMMON_WORDS = ['a','able','about','above','abroad' ...] # this is truncated
 
 The code is quite straightforward, we're just breaking down a text string into its constituent words. We want to focus on words that characterize the document so we're really not that interested in some words such as pronouns, conjunctions, articles, and so on. Dropping those common words will bring up nouns, characteristic adjectives and some verbs. Also, to reduce the number of words, we use a technique called 'stemming' which essentially reduces any word to its 'stem' or root word. For example, the words 'fishing', 'fisher', 'fished', 'fishy' are all reduced to a root word 'fish'. In our method here we used a popular stemming algorithm called <a href="http://blog.saush.com/2009/02/word-stemming-in-ruby/" target="_self">Porter stemming algorithm</a>. To use this stemming algorithm, install the following gem:
 
-<code>
-gem install stemmer
-</code>
+    gem install stemmer
 
 Now let's look at the *classify* method. This is the method that uses <a href="http://en.wikipedia.org/wiki/Bayes%27_theorem" target="_blank">Bayes' Law</a> to classify documents. We will be breaking it down into a few helper methods to illustrate how Bayes' Law is used. Remember that finally we're looking at the probability of a given document being in any of the categories, so we need to have a method that returns a hash of categories with their respective probabilities like this:
 
