@@ -1,6 +1,6 @@
                                                                                               I first learnt about probability when I was in secondary school. As with all the other topics in Maths, it was just another bunch of formulas to memorize and regurgitate to apply to exam questions. Although I was curious if there was any use for it beyond calculating the odds for gambling, I didn't manage to find out any. As with many things in my life, things pop up at unexpected places and I stumbled on it again when as I started on machine learning and naive Bayesian classifiers.
 
-A classifier is exactly that -- it's something that classifies other things. A classifier is a function that takes in a set of data and tells us which category or classification the data belongs to. A naive Bayesian classifier is a type of learning classifier, meaning that you can continually train it with more data and it will be be better at its job. The reason why it's called Bayesian is because it uses <a href="http://en.wikipedia.org/wiki/Bayes%27_theorem" target="_blank">Bayes' Law</a>, a mathematical theorem that talks about conditional probabilities of events, to determine how to classify the data. The classifier is called 'naive' because it assumes each event (in this case the data) to be totally unrelated to each other. That's a very simplistic view but in practice it has been proven to be a surprisingly accurate. Also, because it's relatively simple to implement, it's quite popular. Amongst its more well-known usage include email spam filters.
+A classifier is exactly that -- it's something that classifies other things. A classifier is a function that takes in a set of data and tells us which category or classification the data belongs to. A naive Bayesian classifier is a type of learning classifier, meaning that you can continually train it with more data and it will be be better at its job. The reason why it's called Bayesian is because it uses [Bayes Law](http://en.wikipedia.org/wiki/Bayes%27_theorem), a mathematical theorem that talks about conditional probabilities of events, to determine how to classify the data. The classifier is called 'naive' because it assumes each event (in this case the data) to be totally unrelated to each other. That's a very simplistic view but in practice it has been proven to be a surprisingly accurate. Also, because it's relatively simple to implement, it's quite popular. Amongst its more well-known usage include email spam filters.
 
 So what's Bayes' Law and how can it be used to categorize data? As mentioned, Bayes' Law describes <a href="http://en.wikipedia.org/wiki/Conditional_probabilities" target="_blank">conditional probabilities</a>. An example of conditional probability is the probability of an event A happening given that another event B has happened. This is usually written as Pr(A | B), which is read as the probability of A, given B. To classify a document, we ask -- given a particular text document, what's the probability that it belongs to this category? When we find the probabilities of the given document in all categories, the classifier picks the category with the highest probability and announce it as the winner, that is, the document <strong>most probably</strong> belongs to that category.
 
@@ -25,17 +25,17 @@ In other words, the probability that a document exists, given a category, is the
 Now that we know Pr(document|category) let's look at Pr(category). This is simply the probability of any document being in this category (instead of being in another category). This is the number of documents used to train this category over the total number of documents that used to train all categories.
 
 So that's the basic idea behind naive Bayesian classifiers. With that I'm going to show you how to write a simple classifier in Ruby. There is already a rather popular Ruby implementation by Lucas Carlsson called the <a href="http://classifier.rubyforge.org" target="_blank">Classifier gem (http://classifier.rubyforge.org)</a> which you can use readily but let's write our own classifier instead. We'll be creating class named <em>NativeBayes</em>, in a file called <em>native_bayes.rb</em>. This classifier will be used to classify text into different categories. Let's recap how this classifier will be used:
-<ol>
-	<li>First, tell the classifier how many categories there will be</li>
-	<li>Next, train the classifier with a number of documents, while indicating which category those document belongs to</li>
-	<li>Finally, pass the classifier a document and it should tell us which category it thinks the document should be in</li>
-</ol>
-Now let's run through the public methods of the <em>NativeBayes</em> class, which should map to the 3 actions above:
-<ol>
-	<li>Provide the categories you want to classify the data into</li>
-	<li>Train the classifier by feeding it data</li>
-	<li>Doing the real work, that is to classify given data</li>
-</ol>
+
+* First, tell the classifier how many categories there will be
+* Next, train the classifier with a number of documents, while indicating which category those document belongs to
+* Finally, pass the classifier a document and it should tell us which category it thinks the document should be in
+
+Now let's run through the public methods of the *NativeBayes* class, which should map to the 3 actions above:
+
+* Provide the categories you want to classify the data into
+* Train the classifier by feeding it data
+* Doing the real work, that is to classify given data
+
 The first method we'll roll into the constructor of the class, so that when we create the object, the categories will be set. The second method, <em>train</em>, takes in a category and a document (a text string) to train the classifier. The last method, <em>classify</em>, takes in just a document (a text string) and returns its category.
 
 [sourcecode language="ruby"]
