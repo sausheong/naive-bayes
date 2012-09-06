@@ -38,8 +38,7 @@ Now let's run through the public methods of the *NativeBayes* class, which shoul
 
 The first method we'll roll into the constructor of the class, so that when we create the object, the categories will be set. The second method, <em>train</em>, takes in a category and a document (a text string) to train the classifier. The last method, <em>classify</em>, takes in just a document (a text string) and returns its category.
 
-[sourcecode language="ruby"]
-
+<code>
 class NaiveBayes
   def initialize(*categories)
     @words = Hash.new
@@ -74,26 +73,23 @@ class NaiveBayes
     return default
   end
 end
-
-[/sourcecode]
+</code>
 
 Let's look at the initializer first. We'll need the following instance variables:
 1. @words is a hash containing a list of words trained for the classifier. It looks something like this:
 
-[sourcecode language="ruby"]
+<code>
 {
 "spam"    => { "money" => 10, "quick" => 12, "rich"  => 15 },
 "not_spam" => { "report" => 9, "database" => 13, "salaries"  => 12 }
 }
-
-[/sourcecode]
+</code>
 
 "Spam" and "not_spam" are the categories, while "money", "quick" etc are the words in the "spam" category with the numbers indicating the number of times it has been trained as that particular category.  2. @total_words contains the number of words trained  3. @categories_documents is a hash containing the number of documents trained for each category:
 
-[sourcecode language="ruby"]
+<code>
 { "spam" => 4, "not_spam" => 5}
-
-[/sourcecode]
+</code>
 
 4. @total_documents is the total number of documents trained  5. @categories_words is a hash containing the number of words trained for each category:
 
@@ -103,7 +99,7 @@ Let's look at the initializer first. We'll need the following instance variables
 
 6. @threshold is something I will talk about again at the last section of the code descriptions (it doesn't make much sense now).  Next is the <em>train</em> method, which takes in a category and a document. We break down the document into a number of words, and slot it accordingly into the instance variables we created earlier on. Here we are using a private helper method called word_count to do the grunt work.
 
-[sourcecode language="ruby"]
+<code>
 def word_count(document)
   words = document.gsub(/[^\w\s]/,"").split
   d = Hash.new
@@ -119,21 +115,21 @@ return d
 end
 
 COMMON_WORDS = ['a','able','about','above','abroad' ...] # this is truncated
-[/sourcecode]
+</code>
 
 The code is quite straightforward, we're just breaking down a text string into its constituent words. We want to focus on words that characterize the document so we're really not that interested in some words such as pronouns, conjunctions, articles, and so on. Dropping those common words will bring up nouns, characteristic adjectives and some verbs. Also, to reduce the number of words, we use a technique called 'stemming' which essentially reduces any word to its 'stem' or root word. For example, the words 'fishing', 'fisher', 'fished', 'fishy' are all reduced to a root word 'fish'. In our method here we used a popular stemming algorithm called <a href="http://blog.saush.com/2009/02/word-stemming-in-ruby/" target="_self">Porter stemming algorithm</a>. To use this stemming algorithm, install the following gem:
 
-[sourcecode language="ruby"]
+<code>
 gem install stemmer
-[/sourcecode]
+</code>
 
 Now let's look at the <em>classify</em> method. This is the method that uses <a href="http://en.wikipedia.org/wiki/Bayes%27_theorem" target="_blank">Bayes' Law</a> to classify documents. We will be breaking it down into a few helper methods to illustrate how Bayes' Law is used. Remember that finally we're looking at the probability of a given document being in any of the categories, so we need to have a method that returns a hash of categories with their respective probabilities like this:
 
-[sourcecode language="ruby"]
+<code>
 { "spam" => 0.123, "not_spam" => 0.327}
-[/sourcecode]
+</code>
 
-[sourcecode language="ruby"]
+<code>
 def probabilities(document)
   probabilities = Hash.new
   @words.each_key {|category|
@@ -141,25 +137,25 @@ def probabilities(document)
   }
   return probabilities
 end
-[/sourcecode]
+</code>
 
-In the <em>probabilities</em> method, we need to calculate the probability of that document being in each category. As mentioned above, that probability is Pr(document|category) * Pr(category). We create a helper method called <em>probability</em> that simply multiplies the document probability Pr(document|category) and the category probability Pr(category).
+In the *probabilities* method, we need to calculate the probability of that document being in each category. As mentioned above, that probability is Pr(document|category) * Pr(category). We create a helper method called *probability* that simply multiplies the document probability Pr(document|category) and the category probability Pr(category).
 
-[sourcecode language="ruby"]
+<code>
 def probability(category, document)
   doc_probability(category, document) * category_probability(category)
 end
-[/sourcecode]
+</code>
 
 First let's tackle Pr(document|category). To do that we need to get all the words in the given document, get the word probability of that document and multiply them all together.
 
-[sourcecode language="ruby"]
+<code>
 def doc_probability(category, document)
   doc_prob = 1
   word_count(document).each { |word| doc_prob *= word_probability(category, word[0]) }
   return doc_prob
 end
-[/sourcecode]
+</code>
 
 Next, we want to get the probability of a word. Basically the probability of a word in a category is the number of times it occurred in that category, divided by the number of words in that category altogether. However if the word never occurred during training (and this happens pretty frequently if you don't have much training data), then what you'll get is a big fat 0 in probability. If we propagate this upwards, you'll notice that the document probability will all be made 0 and therefore the probability of that document in that category is made 0 as well. This, of course, is not the desired results. To correct it, we need to tweak the formula a bit.
 To make sure that there is at least some probability to the word even if it isn't in trained list, we assume that the word exists at least 1 time in the training data so that the result is not 0. So this means that instead of:
