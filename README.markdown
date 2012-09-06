@@ -123,39 +123,33 @@ The code is quite straightforward, we're just breaking down a text string into i
 gem install stemmer
 </code>
 
-Now let's look at the <em>classify</em> method. This is the method that uses <a href="http://en.wikipedia.org/wiki/Bayes%27_theorem" target="_blank">Bayes' Law</a> to classify documents. We will be breaking it down into a few helper methods to illustrate how Bayes' Law is used. Remember that finally we're looking at the probability of a given document being in any of the categories, so we need to have a method that returns a hash of categories with their respective probabilities like this:
+Now let's look at the *classify* method. This is the method that uses <a href="http://en.wikipedia.org/wiki/Bayes%27_theorem" target="_blank">Bayes' Law</a> to classify documents. We will be breaking it down into a few helper methods to illustrate how Bayes' Law is used. Remember that finally we're looking at the probability of a given document being in any of the categories, so we need to have a method that returns a hash of categories with their respective probabilities like this:
 
 <code>
 { "spam" => 0.123, "not_spam" => 0.327}
 </code>
 
-<code>
-def probabilities(document)
-  probabilities = Hash.new
-  @words.each_key {|category|
-    probabilities[category] = probability(category, document)
-  }
-  return probabilities
-end
-</code>
+   def probabilities(document)
+    probabilities = Hash.new
+    @words.each_key {|category|
+      probabilities[category] = probability(category, document)
+    }
+    return probabilities
+   end
 
 In the *probabilities* method, we need to calculate the probability of that document being in each category. As mentioned above, that probability is Pr(document|category) * Pr(category). We create a helper method called *probability* that simply multiplies the document probability Pr(document|category) and the category probability Pr(category).
 
-<code>
-def probability(category, document)
-  doc_probability(category, document) * category_probability(category)
-end
-</code>
+   def probability(category, document)
+     doc_probability(category, document) * category_probability(category)
+   end
 
 First let's tackle Pr(document|category). To do that we need to get all the words in the given document, get the word probability of that document and multiply them all together.
 
-<code>
-def doc_probability(category, document)
-  doc_prob = 1
-  word_count(document).each { |word| doc_prob *= word_probability(category, word[0]) }
-  return doc_prob
-end
-</code>
+   def doc_probability(category, document)
+    doc_prob = 1 
+    word_count(document).each { |word| doc_prob *= word_probability(category, word[0]) } 
+    return doc_prob
+   end
 
 Next, we want to get the probability of a word. Basically the probability of a word in a category is the number of times it occurred in that category, divided by the number of words in that category altogether. However if the word never occurred during training (and this happens pretty frequently if you don't have much training data), then what you'll get is a big fat 0 in probability. If we propagate this upwards, you'll notice that the document probability will all be made 0 and therefore the probability of that document in that category is made 0 as well. This, of course, is not the desired results. To correct it, we need to tweak the formula a bit.
 To make sure that there is at least some probability to the word even if it isn't in trained list, we assume that the word exists at least 1 time in the training data so that the result is not 0. So this means that instead of:
