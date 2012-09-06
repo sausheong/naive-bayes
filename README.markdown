@@ -217,6 +217,7 @@ Now that we have the classifier, let's take it out for a test run. I'm going to 
 
 
 This is the output:
+
     Google said on Monday it was releasing a beta version of Google Sync for the iPhone and Windows Mobile phones
     {"tech"=>"62.4965904628081%",
      "business"=>"6.51256988628851%",
