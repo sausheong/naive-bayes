@@ -1,7 +1,9 @@
-require 'naive_bayes'
+#encoding: utf-8
+
+require './naive_bayes'
 require 'pp'
 
-b = NaiveBayes.new("interesting", "not_interesting")
+b = NaiveBayes.new(["interesting", "not_interesting"])
 
 b.train("interesting","'Human error' hits Google search Google's search service has been hit by technical problems, with users unable to access search results. For a period on Saturday, all search results were flagged as potentially harmful, with users warned that the site \"may harm your computer\". Users who clicked on their preferred search result were advised to pick another one. Google attributed the fault to human error and said most users were affected for about 40 minutes. \"What happened? Very simply, human error,\" wrote Marissa Mayer, vice president, search products and user experience, on the Official Google Blog. The internet search engine works with stopbadware.org to ascertain which sites install malicious software on people's computers and merit a warning. Stopbadware.org investigates consumer complaints to decide which sites are dangerous. The list of malevolent sites is regularly updated and handed to Google. When Google updated the list on Saturday, it mistakenly flagged all sites as potentially dangerous. \"We will carefully investigate this incident and put more robust file checks in place to prevent it from happening again,\" Ms Mayer wrote.")
 
