@@ -139,17 +139,17 @@ Now let's look at the *classify* method. This is the method that uses <a href="h
 
 In the *probabilities* method, we need to calculate the probability of that document being in each category. As mentioned above, that probability is Pr(document|category) * Pr(category). We create a helper method called *probability* that simply multiplies the document probability Pr(document|category) and the category probability Pr(category).
 
-   def probability(category, document)
-     doc_probability(category, document) * category_probability(category)
-   end
+    def probability(category, document)
+      doc_probability(category, document) * category_probability(category)
+    end
 
 First let's tackle Pr(document|category). To do that we need to get all the words in the given document, get the word probability of that document and multiply them all together.
 
-   def doc_probability(category, document)
-    doc_prob = 1 
-    word_count(document).each { |word| doc_prob *= word_probability(category, word[0]) } 
-    return doc_prob
-   end
+    def doc_probability(category, document)
+      doc_prob = 1 
+      word_count(document).each { |word| doc_prob *= word_probability(category, word[0]) } 
+      return doc_prob
+    end
 
 Next, we want to get the probability of a word. Basically the probability of a word in a category is the number of times it occurred in that category, divided by the number of words in that category altogether. However if the word never occurred during training (and this happens pretty frequently if you don't have much training data), then what you'll get is a big fat 0 in probability. If we propagate this upwards, you'll notice that the document probability will all be made 0 and therefore the probability of that document in that category is made 0 as well. This, of course, is not the desired results. To correct it, we need to tweak the formula a bit.
 To make sure that there is at least some probability to the word even if it isn't in trained list, we assume that the word exists at least 1 time in the training data so that the result is not 0. So this means that instead of:
@@ -158,29 +158,24 @@ we take:
 <a href="http://blog.saush.com/wp-content/uploads/2009/02/word_prob2_eq.png"></a><a rel="attachment wp-att-431" href="http://blog.saush.com/2009/02/11/naive-bayesian-classifiers-and-ruby/word_prob2_eq-300x44/"><img class="alignnone size-full wp-image-431" title="word_prob2_eq-300x44" src="http://saush.wordpress.com/files/2009/02/word_prob2_eq-300x44.png" alt="word_prob2_eq-300x44" width="300" height="44" /></a>
 So the code is something like this:
 
-[sourcecode language="ruby"]
-def word_probability(category, word)
-  (@words[category][word.stem].to_f + 1)/@categories_words[category].to_f
-end
-[/sourcecode]
+    def word_probability(category, word)
+     (@words[category][word.stem].to_f + 1)/@categories_words[category].to_f
+    end
 
 Finally we want to get Pr(category), which is pretty straightforward. It's just the probability that any random document being in this category, so we take number of documents trained in the category and divide it with the total number of documents trained in the classifier.
 
-[sourcecode language="ruby"]
-def category_probability(category)
-  @categories_documents[category].to_f/@total_documents.to_f
-end
-[/sourcecode]
+    def category_probability(category)
+      @categories_documents[category].to_f/@total_documents.to_f
+    end
 
 Now that we have the probabilities, let's go back to the classify method and take a look at it again:
 
-[sourcecode language="ruby"]
-def classify(document, default='unknown')
-  sorted = probabilities(document).sort {|a,b| a[1]<=>b[1]}
-  best,second_best = sorted.pop, sorted.pop
-  return best[0] if (best[1]/second_best[1] > @threshold)
-  return default
-end
+     def classify(document, default='unknown')
+       sorted = probabilities(document).sort {|a,b| a[1]<=>b[1]}
+       best,second_best = sorted.pop, sorted.pop
+       return best[0] if (best[1]/second_best[1] > @threshold)
+       return default
+     end
 [/sourcecode]
 
 We sort the probabilities to bubble up the category with the largest probability. However if we use this directly,it means it has to be the one with the largest, even though the category with the second largest probability is only maybe a bit smaller. For example, take the spam and non-spam categories and say the ratio of the probabilities are like this -- spam is 53% and non-spam is 47%. Should the document be classified as spam? Logically, not! This is the reason for the threshold variable, which gives a ratio between the best and the second best. In the example code above the value is 1.5 meaning the best probability needs to be 1.5 times better than the second best probability i.e. the ratio needs to be 60% to 40% for the best and second best probabilities respectively. If this is not the case, then the classifier will just shrug and say it doesn't know (returns 'default' as the category). You can tweak this number accordingly depending on the type of categories you are using.
