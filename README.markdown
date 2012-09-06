@@ -176,85 +176,81 @@ Now that we have the probabilities, let's go back to the classify method and tak
        return best[0] if (best[1]/second_best[1] > @threshold)
        return default
      end
-[/sourcecode]
 
 We sort the probabilities to bubble up the category with the largest probability. However if we use this directly,it means it has to be the one with the largest, even though the category with the second largest probability is only maybe a bit smaller. For example, take the spam and non-spam categories and say the ratio of the probabilities are like this -- spam is 53% and non-spam is 47%. Should the document be classified as spam? Logically, not! This is the reason for the threshold variable, which gives a ratio between the best and the second best. In the example code above the value is 1.5 meaning the best probability needs to be 1.5 times better than the second best probability i.e. the ratio needs to be 60% to 40% for the best and second best probabilities respectively. If this is not the case, then the classifier will just shrug and say it doesn't know (returns 'default' as the category). You can tweak this number accordingly depending on the type of categories you are using.
 Now that we have the classifier, let's take it out for a test run. I'm going to use a set of Yahoo news RSS feeds to train the classifier according to the various categories, then use some random text I get from some other sites and ask the classifier to classify them.
 
-[sourcecode language="ruby"]
-require 'rubygems'
-require 'rss/1.0'
-require 'rss/2.0'
-require 'open-uri'
-require 'hpricot'
-require 'naive_bayes'
-require 'pp'
+    require 'rubygems'
+    require 'rss/1.0'
+    require 'rss/2.0'
+    require 'open-uri'
+    require 'hpricot'
+    require 'naive_bayes'
+    require 'pp'
 
-categories = %w(tech sports business entertainment)
-classifier = NaiveBayes.new(categories)
+    categories = %w(tech sports business entertainment)
+    classifier = NaiveBayes.new(categories)
 
-content =''
-categories.each { |category|
-  feed = "http://rss.news.yahoo.com/rss/#{category}"
-  open(feed) do |s| content = s.read end
-  rss = RSS::Parser.parse(content, false)
-  rss.items.each { |item|
-  text = Hpricot(item.description).inner_text
-  classifier.train(category, text)
-}
+    content =''
+    categories.each { |category|
+      feed = "http://rss.news.yahoo.com/rss/#{category}"
+      open(feed) do |s| content = s.read end
+      rss = RSS::Parser.parse(content, false)
+      rss.items.each { |item|
+      text = Hpricot(item.description).inner_text
+      classifier.train(category, text)
+    }
 
-# classify this
-documents = [
-"Google said on Monday it was releasing a beta version of Google Sync for the iPhone and Windows Mobile phones",
-:Rangers waste 5 power plays in 3-0 loss to Devils",
-"Going well beyond its current Windows Mobile software, Microsoft will try to extend its desktop dominance with a Windows phone.",
-"UBS cuts jobs after Q4 loss",
-"A fight in Hancock Park after a pre-Grammy Awards party left the singer with bruises and a scratched face, police say."]
+    # classify this
+    documents = [
+    "Google said on Monday it was releasing a beta version of Google Sync for the iPhone and Windows Mobile phones",
+    :Rangers waste 5 power plays in 3-0 loss to Devils",
+    "Going well beyond its current Windows Mobile software, Microsoft will try to extend its desktop dominance with a Windows phone.",
+    "UBS cuts jobs after Q4 loss",
+    "A fight in Hancock Park after a pre-Grammy Awards party left the singer with bruises and a scratched face, police say."]
 
-documents.each { |text|
-  puts text
-  puts "category => #{classifier.classify(text)}"
-  puts
-}
+    documents.each { |text|
+      puts text
+      puts "category => #{classifier.classify(text)}"
+      puts
+    }
 
-[/sourcecode]
 
 This is the output:
-[sourcecode language="bash"]    
-Google said on Monday it was releasing a beta version of Google Sync for the iPhone and Windows Mobile phones
-{"tech"=>"62.4965904628081%",
- "business"=>"6.51256988628851%",
- "entertainment"=>"16.8319433691552%",
- "sports"=>"14.1588962817482%"}
-category => tech
+    Google said on Monday it was releasing a beta version of Google Sync for the iPhone and Windows Mobile phones
+    {"tech"=>"62.4965904628081%",
+     "business"=>"6.51256988628851%",
+     "entertainment"=>"16.8319433691552%",
+     "sports"=>"14.1588962817482%"}
+    category => tech
 
-Rangers waste 5 power plays in 3-0 loss to Devils
-{"tech"=>"14.7517595939031%",
- "business"=>"3.51842781998617%",
- "entertainment"=>"8.09457974962582%",
- "sports"=>"73.6352328364849%"}
-category => sports
+    Rangers waste 5 power plays in 3-0 loss to Devils
+    {"tech"=>"14.7517595939031%",
+     "business"=>"3.51842781998617%",
+     "entertainment"=>"8.09457974962582%",
+     "sports"=>"73.6352328364849%"}
+    category => sports
 
-Going well beyond its current Windows Mobile software, Microsoft will try to extend its desktop dominance with a Windows phone.
-{"tech"=>"91.678065974899%",
- "business"=>"0.851666657161468%",
- "entertainment"=>"4.15349223570253%",
- "sports"=>"3.31677513223704%"}
-category => tech
+    Going well beyond its current Windows Mobile software, Microsoft will try to extend its desktop dominance with a Windows phone.
+    {"tech"=>"91.678065974899%",
+     "business"=>"0.851666657161468%",
+     "entertainment"=>"4.15349223570253%",
+     "sports"=>"3.31677513223704%"}
+    category => tech
 
-UBS cuts jobs after Q4 loss
-{"business"=>"33.1048977545484%",
- "tech"=>"14.1719403525702%",
- "entertainment"=>"31.9818519810561%",
- "sports"=>"20.7413099118253%"}
-category => unknown
+    UBS cuts jobs after Q4 loss
+    {"business"=>"33.1048977545484%",
+     "tech"=>"14.1719403525702%",
+     "entertainment"=>"31.9818519810561%",
+     "sports"=>"20.7413099118253%"}
+    category => unknown
 
-A fight in Hancock Park after a pre-Grammy Awards party left the R&B singer with bruises and a scratched face, police say.
-{"tech"=>"4.10704270254326%",
- "business"=>"1.4959136651331%",
- "entertainment"=>"78.1802587499558%",
- "sports"=>"16.2167848823678%"}
-category => entertainment
-[/sourcecode]
+    A fight in Hancock Park after a pre-Grammy Awards party left the R&B singer with bruises and a scratched face, police say.
+    {"tech"=>"4.10704270254326%",
+     "business"=>"1.4959136651331%",
+     "entertainment"=>"78.1802587499558%",
+     "sports"=>"16.2167848823678%"}
+    category => entertainment
+
 You can download the code described above from GitHub at <a href="http://github.com/sausheong/naive-bayes" target="_blank">http://github.com/sausheong/naive-bayes</a>, including naive_bayes.rb and the bayes_test.rb files.
 For more information, you should pick up the excellent book <a href="http://oreilly.com/catalog/9780596529321/" target="_blank">Programming Collective Intelligence</a> by <a href="http://blog.kiwitobes.com/" target="_blank">Toby Segaran</a>.
