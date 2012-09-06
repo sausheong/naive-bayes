@@ -129,13 +129,13 @@ Now let's look at the *classify* method. This is the method that uses <a href="h
 { "spam" => 0.123, "not_spam" => 0.327}
 </code>
 
-   def probabilities(document)
-    probabilities = Hash.new
-    @words.each_key {|category|
-      probabilities[category] = probability(category, document)
-    }
-    return probabilities
-   end
+    def probabilities(document)
+      probabilities = Hash.new
+      @words.each_key {|category|
+        probabilities[category] = probability(category, document)
+      }
+      return probabilities
+    end
 
 In the *probabilities* method, we need to calculate the probability of that document being in each category. As mentioned above, that probability is Pr(document|category) * Pr(category). We create a helper method called *probability* that simply multiplies the document probability Pr(document|category) and the category probability Pr(category).
 
