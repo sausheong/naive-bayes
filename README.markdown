@@ -38,42 +38,40 @@ Now let's run through the public methods of the *NativeBayes* class, which shoul
 
 The first method we'll roll into the constructor of the class, so that when we create the object, the categories will be set. The second method, <em>train</em>, takes in a category and a document (a text string) to train the classifier. The last method, <em>classify</em>, takes in just a document (a text string) and returns its category.
 
-<code>
-class NaiveBayes
-  def initialize(*categories)
-    @words = Hash.new
-    @total_words = 0
-    @categories_documents = Hash.new
-    @total_documents = 0
-    @categories_words = Hash.new
-    @threshold = 1.5
+    class NaiveBayes
+      def initialize(*categories)
+        @words = Hash.new
+        @total_words = 0
+        @categories_documents = Hash.new
+        @total_documents = 0
+        @categories_words = Hash.new
+        @threshold = 1.5
 
-    categories.each { |category|
-      @words[category] = Hash.new
-      @categories_documents[category] = 0
-      @categories_words[category] = 0
-    }
-  end
+        categories.each { |category|
+          @words[category] = Hash.new
+          @categories_documents[category] = 0
+          @categories_words[category] = 0
+        }
+      end
 
-  def train(category, document)
-    word_count(document).each do |word, count|
-      @words[category][word] ||= 0
-      @words[category][word] += count
-      @total_words += count
-      @categories_words[category] += count
+      def train(category, document)
+        word_count(document).each do |word, count|
+          @words[category][word] ||= 0
+          @words[category][word] += count
+          @total_words += count
+          @categories_words[category] += count
+        end
+        @categories_documents[category] += 1
+        @total_documents += 1
+      end
+
+      def classify(document, default='unknown')
+        sorted = probabilities(document).sort {|a,b| a[1]<=>b[1]}
+        best,second_best = sorted.pop, sorted.pop
+        return best[0] if (best[1]/second_best[1] > @threshold)
+        return default
+      end
     end
-    @categories_documents[category] += 1
-    @total_documents += 1
-  end
-
-  def classify(document, default='unknown')
-    sorted = probabilities(document).sort {|a,b| a[1]<=>b[1]}
-    best,second_best = sorted.pop, sorted.pop
-    return best[0] if (best[1]/second_best[1] > @threshold)
-    return default
-  end
-end
-</code>
 
 Let's look at the initializer first. We'll need the following instance variables:
 1. @words is a hash containing a list of words trained for the classifier. It looks something like this:
